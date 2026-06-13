@@ -3,7 +3,7 @@ services:
     name: project-rating-system
     runtime: node
     plan: free
-    buildCommand: npm install
+    buildCommand: npm install && npm rebuild sqlite3
     startCommand: npm start
     envVars:
       - key: NODE_ENV
