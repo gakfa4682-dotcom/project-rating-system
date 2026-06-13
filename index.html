@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>项目评分系统</title>
+  <style>
+    :root {
+      --bg: #f0f2f5;
+      --card: #ffffff;
+      --text: #1a1a1a;
+      --text-light: #666;
+      --border: #e0e0e0;
+      --primary: #1677ff;
+      --primary-dark: #0958d9;
+      --success: #52c41a;
+      --warning: #faad14;
+      --danger: #ff4d4f;
+      --excellent: #52c41a;
+      --good: #faad14;
+      --poor: #ff4d4f;
+      --shadow: 0 2px 8px rgba(0,0,0,0.06);
+      --radius: 12px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      font-size: 15px;
+    }
+    .container { max-width: 720px; margin: 0 auto; padding: 16px; }
+
+    .login-wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .login-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 32px 24px;
+      width: 100%;
+      max-width: 360px;
+    }
+    .login-title { text-align: center; font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+    .login-subtitle { text-align: center; color: var(--text-light); font-size: 13px; margin-bottom: 28px; }
+
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: var(--text); }
+    .form-control {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 16px;
+      font-family: inherit;
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+    }
+    .form-control:focus { outline: none; border-color: var(--primary); }
+
+    .btn {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+      -webkit-appearance: none;
+    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:active { background: var(--primary-dark); transform: scale(0.98); }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-danger:active { opacity: 0.9; transform: scale(0.98); }
+    .btn-secondary { background: #f0f0f0; color: var(--text); }
+    .btn-secondary:active { background: #e0e0e0; }
+    .btn-sm { width: auto; padding: 8px 16px; font-size: 14px; }
+
+    .header-bar {
+      background: var(--card);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+    .header-title { font-size: 17px; font-weight: 700; }
+    .header-user { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-light); }
+    .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: white;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .card-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--card);
+      padding: 4px;
+      border-radius: var(--radius);
+      margin-bottom: 16px;
+      overflow-x: auto;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-light);
+      font-size: 14px;
+      font-weight: 500;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+    .tab-btn:active { background: var(--bg); }
+    .tab-btn.active { background: var(--primary); color: white; }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .rank-item {
+      display: flex;
+      align-items: center;
+      padding: 14px;
+      background: #f8f9fa;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+    .rank-item.gold { background: #fff8e1; }
+    .rank-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; color: white; margin-right: 12px;
+      font-size: 14px;
+    }
+    .rank-info { flex: 1; }
+    .rank-name { font-weight: 600; font-size: 15px; }
+    .rank-meta { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+    .rank-score { text-align: right; }
+    .rank-score-val { font-size: 22px; font-weight: 700; }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .badge-excellent { background: #d4edda; color: #155724; }
+    .badge-good { background: #fff3cd; color: #856404; }
+    .badge-poor { background: #f8d7da; color: #721c24; }
+    .badge-gray { background: #ecf0f1; color: #7f8c8d; }
+
+    .project-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 12px;
+      background: var(--card);
+    }
+    .project-info h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .project-info span { font-size: 13px; color: var(--text-light); }
+    .project-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+    .score-section { margin-bottom: 16px; padding: 16px; border-radius: 10px; }
+    .score-section-boss { background: #fff8e1; border-left: 4px solid var(--warning); }
+    .score-section-pm { background: #e8f5e9; border-left: 4px solid var(--success); }
+    .score-section h5 { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+    .score-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .score-row label { font-size: 14px; }
+    .score-input {
+      width: 80px; text-align: center; font-size: 16px; font-weight: 600;
+      padding: 10px; border: 1px solid var(--border); border-radius: 8px;
+      -webkit-appearance: none;
+    }
+
+    .record-item {
+      padding: 14px 16px; background: #f8f9fa; border-radius: 8px;
+      margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .record-info { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .record-arrow { color: var(--text-light); }
+    .record-val { font-size: 20px; font-weight: 700; }
+
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-light); }
+    .empty-state svg { width: 56px; height: 56px; margin-bottom: 12px; opacity: 0.3; }
+    .empty-state p { font-size: 14px; }
+
+    .stat-bar-wrap { margin-bottom: 14px; }
+    .stat-bar-hd { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 13px; }
+    .stat-bar { height: 8px; background: #e8e8e8; border-radius: 4px; overflow: hidden; }
+    .stat-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+
+    .user-item { display: flex; align-items: center; justify-content: space-between; padding: 14px; background: #f8f9fa; border-radius: 10px; margin-bottom: 10px; }
+    .user-item-info { display: flex; align-items: center; gap: 10px; }
+
+    .tip-box { padding: 12px 16px; background: #e6f7ff; border: 1px solid #91d5ff; border-radius: 8px; font-size: 13px; color: #096dd9; margin-bottom: 16px; }
+    .tip-box.warn { background: #fffbe6; border-color: #ffe58f; color: #ad6800; }
+
+    .section-divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+    .logout-btn { padding: 6px 12px; font-size: 13px; border-radius: 6px; border: none; background: #f0f0f0; color: var(--text-light); cursor: pointer; }
+
+    .toast {
+      position: fixed; top: 60px; left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: rgba(0,0,0,0.75); color: white;
+      padding: 10px 20px; border-radius: 8px; font-size: 14px;
+      opacity: 0; pointer-events: none; transition: all 0.3s; z-index: 999;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+  <div id="page-login" class="login-wrap">
+    <div class="login-card">
+      <div class="login-title">项目评分系统</div>
+      <div class="login-subtitle">请选择身份并登录</div>
+      <div class="form-group">
+        <label>身份</label>
+        <select id="loginUser" class="form-control" onchange="onLoginUserChange()">
+          <option value="">请选择</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>密码</label>
+        <input type="password" id="loginPwd" class="form-control" placeholder="请输入密码">
+      </div>
+      <button class="btn btn-primary" onclick="doLogin()">登录</button>
+    </div>
+  </div>
+
+  <div id="page-main" style="display: none;">
+    <div class="header-bar">
+      <div class="header-title" id="mainTitle">项目评分系统</div>
+      <div class="header-user">
+        <div class="avatar" id="headerAvatar">A</div>
+        <span id="headerName">老板</span>
+        <button class="logout-btn" onclick="doLogout()">退出</button>
+      </div>
+    </div>
+
+    <div class="container">
+      <div id="boss-tabs" class="tabs" style="display:none;">
+        <button class="tab-btn active" onclick="switchTab('overview')">人员总览</button>
+        <button class="tab-btn" onclick="switchTab('projects')">项目管理</button>
+        <button class="tab-btn" onclick="switchTab('scoring')">评分录入</button>
+        <button class="tab-btn" onclick="switchTab('records')">评分记录</button>
+        <button class="tab-btn" onclick="switchTab('settings')">账号管理</button>
+        <button class="tab-btn" onclick="switchTab('data')">数据管理</button>
+      </div>
+
+      <div id="emp-tabs" class="tabs" style="display:none;">
+        <button class="tab-btn active" onclick="switchTab('my-projects')">我的项目</button>
+        <button class="tab-btn" onclick="switchTab('records')">评分记录</button>
+      </div>
+
+      <div id="tab-overview" class="tab-content active">
+        <div class="card">
+          <div class="card-title">团队成员平均分（仅管理员可见）</div>
+          <div id="overviewList"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">评分标准</div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <span class="badge badge-excellent">10分 = 优秀</span>
+            <span class="badge badge-good">7-9分 = 良好</span>
+            <span class="badge badge-poor">7分以下 = 一般</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-projects" class="tab-content">
+        <div class="card">
+          <div class="card-title">新建项目</div>
+          <div class="form-group">
+            <label>项目名称</label>
+            <input type="text" id="projectName" class="form-control" placeholder="请输入项目名称">
+          </div>
+          <div class="form-group">
+            <label>项目经理（BCD轮流担任）</label>
+            <select id="projectManager" class="form-control"><option value="">请选择</option></select>
+          </div>
+          <button class="btn btn-primary" onclick="createProject()">创建项目</button>
+        </div>
+        <div class="card">
+          <div class="card-title">项目列表</div>
+          <div id="projectList"></div>
+        </div>
+      </div>
+
+      <div id="tab-scoring" class="tab-content">
+        <div class="card">
+          <div class="card-title">选择项目进行评分</div>
+          <div class="form-group">
+            <label>选择项目</label>
+            <select id="scoreProjectSelect" class="form-control" onchange="loadProjectScoring()"><option value="">请选择要评分的项目</option></select>
+          </div>
+          <div id="scoringForm" style="display:none;">
+            <div class="section-divider"></div>
+            <div id="scoringSections"></div>
+            <button class="btn btn-primary" onclick="submitScores()" style="margin-top: 12px;">提交评分</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-my-projects" class="tab-content">
+        <div class="card">
+          <div class="card-title">我担任项目经理的项目</div>
+          <div id="myProjectList"></div>
+        </div>
+      </div>
+
+      <div id="tab-records" class="tab-content">
+        <div class="card">
+          <div class="card-title" id="recordsTitle">所有评分记录</div>
+          <div id="scoreRecords"></div>
+        </div>
+      </div>
+
+      <div id="tab-settings" class="tab-content">
+        <div class="card">
+          <div class="card-title">员工账号密码管理</div>
+          <div class="tip-box">您可以在此为员工重置密码，员工自己无法修改密码。</div>
+          <div id="userList"></div>
+        </div>
+      </div>
+
+      <div id="tab-data" class="tab-content">
+        <div class="card">
+          <div class="card-title">数据导出</div>
+          <div class="tip-box">将所有数据导出备份。</div>
+          <button class="btn btn-primary" onclick="exportData()" style="margin-top:8px;">导出全部数据</button>
+        </div>
+        <div class="card">
+          <div class="card-title">数据导入</div>
+          <div class="tip-box warn">导入会覆盖服务器上的所有数据，请谨慎操作！</div>
+          <div class="form-group" style="margin-top:12px;">
+            <input type="file" id="importFile" class="form-control" accept=".json" onchange="importData(this)">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const API_BASE = '';
+    let users = [], projects = [], scores = [], currentUser = null;
+
+    async function apiFetch(path, opts = {}) {
+      const token = localStorage.getItem('rs_token');
+      const res = await fetch(API_BASE + path, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': 'Bearer ' + token } : {}),
+          ...opts.headers
+        },
+        ...opts
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || '请求失败');
+      return data;
+    }
+
+    async function initData() {
+      try {
+        const u = await apiFetch('/api/users');
+        users = u.users || [];
+        renderLoginSelect();
+      } catch (e) {
+        console.log('服务端未启动，使用默认用户');
+        users = [
+          { id: 'A', name: '老板', realName: '老板', role: 'admin', color: '#e74c3c' },
+          { id: 'B', name: '金洪樑', realName: '金洪樑', role: 'employee', color: '#3498db' },
+          { id: 'C', name: '郭晨浩', realName: '郭晨浩', role: 'employee', color: '#2ecc71' },
+          { id: 'D', name: '胡耀', realName: '胡耀', role: 'employee', color: '#9b59b6' }
+        ];
+        renderLoginSelect();
+      }
+    }
+
+    async function loadAllData() {
+      try {
+        const p = await apiFetch('/api/projects');
+        projects = p.projects || [];
+        const s = await apiFetch('/api/scores');
+        scores = s.scores || [];
+      } catch (e) { console.error(e); }
+    }
+
+    function getUser(id) { return users.find(u => u.id === id); }
+    function getProject(id) { return projects.find(p => p.id === id); }
+    function getEmployeeScores(toId) { return scores.filter(s => s.toId === toId); }
+    function getEmployeeAvg(toId) {
+      const list = getEmployeeScores(toId);
+      if (list.length === 0) return null;
+      return (list.reduce((sum, s) => sum + s.score, 0) / list.length).toFixed(1);
+    }
+    function getRatingLabel(score) {
+      if (score >= 10) return { text: '优秀', class: 'badge-excellent' };
+      if (score >= 7) return { text: '良好', class: 'badge-good' };
+      return { text: '一般', class: 'badge-poor' };
+    }
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    // ==================== 登录 ====================
+    function renderLoginSelect() {
+      const sel = document.getElementById('loginUser');
+      sel.innerHTML = '<option value="">请选择</option>' +
+        users.map(u => `<option value="${u.id}">${u.realName} (${u.role === 'admin' ? '管理员' : '员工'})</option>`).join('');
+    }
+
+    function onLoginUserChange() {
+      const uid = document.getElementById('loginUser').value;
+      const pwdInput = document.getElementById('loginPwd');
+      const u = getUser(uid);
+      if (u && u.role === 'admin') pwdInput.placeholder = '默认密码: admin123';
+      else pwdInput.placeholder = '请输入密码';
+    }
+
+    async function doLogin() {
+      const uid = document.getElementById('loginUser').value;
+      const pwd = document.getElementById('loginPwd').value;
+      if (!uid) { alert('请选择身份'); return; }
+      if (!pwd) { alert('请输入密码'); return; }
+      try {
+        const data = await apiFetch('/api/login', {
+          method: 'POST',
+          body: JSON.stringify({ userId: uid, password: pwd })
+        });
+        localStorage.setItem('rs_token', data.token);
+        currentUser = data.user;
+        await loadAllData();
+        document.getElementById('page-login').style.display = 'none';
+        document.getElementById('page-main').style.display = 'block';
+        document.getElementById('headerAvatar').textContent = currentUser.id;
+        document.getElementById('headerAvatar').style.background = currentUser.color;
+        document.getElementById('headerName').textContent = currentUser.realName;
+        if (currentUser.role === 'admin') {
+          document.getElementById('boss-tabs').style.display = 'flex';
+          document.getElementById('emp-tabs').style.display = 'none';
+          switchTab('overview');
+        } else {
+          document.getElementById('boss-tabs').style.display = 'none';
+          document.getElementById('emp-tabs').style.display = 'flex';
+          switchTab('my-projects');
+        }
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    function doLogout() {
+      currentUser = null;
+      localStorage.removeItem('rs_token');
+      document.getElementById('page-main').style.display = 'none';
+      document.getElementById('page-login').style.display = 'flex';
+      document.getElementById('loginPwd').value = '';
+      document.getElementById('loginUser').value = '';
+    }
+
+    // ==================== Tab ====================
+    function switchTab(tabName) {
+      const isAdmin = currentUser && currentUser.role === 'admin';
+      const tabsContainer = isAdmin ? document.getElementById('boss-tabs') : document.getElementById('emp-tabs');
+      tabsContainer.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+        btn.classList.remove('active');
+        const btnTabs = isAdmin ? ['overview','projects','scoring','records','settings','data'] : ['my-projects','records'];
+        if (btnTabs[idx] === tabName) btn.classList.add('active');
+      });
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.getElementById('tab-' + tabName).classList.add('active');
+      if (tabName === 'overview') renderOverview();
+      if (tabName === 'projects') renderProjects();
+      if (tabName === 'scoring') renderScoring();
+      if (tabName === 'my-projects') renderMyProjects();
+      if (tabName === 'records') renderRecords();
+      if (tabName === 'settings') renderSettings();
+    }
+
+    // ==================== 人员总览 ====================
+    function renderOverview() {
+      const list = document.getElementById('overviewList');
+      const employees = users.filter(u => u.role === 'employee');
+      const sorted = employees.map(e => {
+        const avg = getEmployeeAvg(e.id);
+        const count = getEmployeeScores(e.id).length;
+        return { ...e, avg, count };
+      }).sort((a, b) => (b.avg || -1) - (a.avg || -1));
+      list.innerHTML = sorted.map((p, i) => {
+        const rating = p.avg ? getRatingLabel(parseFloat(p.avg)) : null;
+        return `
+          <div class="rank-item ${i === 0 ? 'gold' : ''}">
+            <div class="rank-avatar" style="background:${p.color}">${p.name.charAt(0)}</div>
+            <div class="rank-info">
+              <div class="rank-name">${p.name}</div>
+              <div class="rank-meta">${p.count} 次评分</div>
+            </div>
+            <div class="rank-score">
+              <div class="rank-score-val" style="color:${p.avg?(parseFloat(p.avg)>=7?(parseFloat(p.avg)>=10?'#52c41a':'#faad14'):'#ff4d4f'):'#bbb'}">${p.avg||'-'}</div>
+              ${rating?`<span class="badge ${rating.class}">${rating.text}</span>`:'<span class="badge badge-gray">暂无</span>'}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ==================== 项目管理 ====================
+    function renderProjects() {
+      const sel = document.getElementById('projectManager');
+      const employees = users.filter(u => u.role === 'employee');
+      sel.innerHTML = '<option value="">请选择项目经理</option>' + employees.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+      const list = document.getElementById('projectList');
+      if (projects.length === 0) { list.innerHTML = emptyHTML('暂无项目'); return; }
+      list.innerHTML = projects.map(proj => {
+        const pm = getUser(proj.managerId);
+        const projScores = scores.filter(s => s.projectId === proj.id);
+        return `
+          <div class="project-item">
+            <div class="project-info"><h4>${proj.name}</h4><span>项目经理：${pm?pm.name:'未知'} · 已评分 ${projScores.length} 条</span></div>
+            <div class="project-actions">
+              <button class="btn btn-sm btn-secondary" onclick="goScore('${proj.id}')">评分</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteProject('${proj.id}')">删除</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function createProject() {
+      const name = document.getElementById('projectName').value.trim();
+      const managerId = document.getElementById('projectManager').value;
+      if (!name) { showToast('请输入项目名称'); return; }
+      if (!managerId) { showToast('请选择项目经理'); return; }
+      try {
+        await apiFetch('/api/projects', { method: 'POST', body: JSON.stringify({ name, managerId }) });
+        document.getElementById('projectName').value = '';
+        document.getElementById('projectManager').value = '';
+        await loadAllData();
+        renderProjects();
+        showToast('项目创建成功');
+      } catch (e) { alert(e.message); }
+    }
+
+    async function deleteProject(id) {
+      if (!confirm('确定删除该项目？相关评分也会被删除')) return;
+      try {
+        await apiFetch('/api/projects/' + id, { method: 'DELETE' });
+        await loadAllData();
+        renderProjects();
+      } catch (e) { alert(e.message); }
+    }
+
+    function goScore(pid) {
+      switchTab('scoring');
+      document.getElementById('scoreProjectSelect').value = pid;
+      loadProjectScoring();
+    }
+
+    // ==================== 评分录入 ====================
+    function renderScoring() {
+      const select = document.getElementById('scoreProjectSelect');
+      select.innerHTML = '<option value="">请选择要评分的项目</option>' + projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+      document.getElementById('scoringForm').style.display = 'none';
+    }
+
+    function loadProjectScoring() {
+      const pid = document.getElementById('scoreProjectSelect').value;
+      const form = document.getElementById('scoringForm');
+      const wrap = document.getElementById('scoringSections');
+      if (!pid) { form.style.display = 'none'; return; }
+      const proj = getProject(pid);
+      if (!proj) { form.style.display = 'none'; return; }
+      const isAdmin = currentUser.role === 'admin';
+      const pm = getUser(proj.managerId);
+      const employees = users.filter(u => u.role === 'employee');
+      const others = employees.filter(e => e.id !== proj.managerId);
+      const existing = scores.filter(s => s.projectId === pid);
+      let html = `<h4 style="margin-bottom:14px;color:var(--primary)">项目：${proj.name}</h4>`;
+      if (isAdmin) {
+        html += `
+          <div class="score-section score-section-boss">
+            <h5>您（老板）给项目经理 ${pm.name} 打分</h5>
+            <div class="score-row"><label>分数（0-10）</label>
+              <input type="number" id="sc_A_${pm.id}" class="score-input" min="0" max="10" step="0.1"
+                value="${getExistScore(existing,'A',pm.id)}" placeholder="0-10">
+            </div>
+          </div>`;
+      } else {
+        html += `<div class="tip-box warn">老板给项目经理的评分仅管理员可见，您无法查看。</div>`;
+      }
+      if (currentUser.id === proj.managerId) {
+        html += `<div class="score-section score-section-pm"><h5>您作为项目经理，给其他成员打分</h5>`;
+        others.forEach(emp => {
+          html += `<div class="score-row"><label>${emp.name}</label>
+            <input type="number" id="sc_${currentUser.id}_${emp.id}" class="score-input" min="0" max="10" step="0.1"
+              value="${getExistScore(existing,currentUser.id,emp.id)}" placeholder="0-10">
+          </div>`;
+        });
+        html += `</div>`;
+      } else if (!isAdmin) {
+        html += `<div class="tip-box warn">您不是该项目的项目经理，没有评分权限。</div>`;
+      }
+      wrap.innerHTML = html;
+      form.style.display = 'block';
+    }
+
+    function getExistScore(existing, fromId, toId) {
+      const s = existing.find(x => x.fromId === fromId && x.toId === toId);
+      return s ? s.score : '';
+    }
+
+    async function submitScores() {
+      const pid = document.getElementById('scoreProjectSelect').value;
+      if (!pid) return;
+      const proj = getProject(pid);
+      if (!proj) return;
+      let newScores = [];
+      const isAdmin = currentUser.role === 'admin';
+      if (isAdmin) {
+        const s = parseFloat(document.getElementById(`sc_A_${proj.managerId}`).value);
+        if (!isNaN(s)) newScores.push({ fromId: 'A', toId: proj.managerId, score: s });
+      }
+      if (currentUser.id === proj.managerId) {
+        const employees = users.filter(u => u.role === 'employee');
+        employees.filter(e => e.id !== proj.managerId).forEach(emp => {
+          const s = parseFloat(document.getElementById(`sc_${currentUser.id}_${emp.id}`).value);
+          if (!isNaN(s)) newScores.push({ fromId: currentUser.id, toId: emp.id, score: s });
+        });
+      }
+      if (newScores.length === 0) { showToast('请至少输入一项评分'); return; }
+      try {
+        await apiFetch('/api/scores', { method: 'POST', body: JSON.stringify({ projectId: pid, scores: newScores }) });
+        await loadAllData();
+        showToast('评分提交成功');
+        loadProjectScoring();
+      } catch (e) { alert(e.message); }
+    }
+
+    // ==================== 员工：我的项目 ====================
+    function renderMyProjects() {
+      const list = document.getElementById('myProjectList');
+      const myProjects = projects.filter(p => p.managerId === currentUser.id);
+      if (myProjects.length === 0) { list.innerHTML = emptyHTML('您当前没有担任项目经理的项目'); return; }
+      list.innerHTML = myProjects.map(proj => {
+        const existing = scores.filter(s => s.projectId === proj.id);
+        const myScores = existing.filter(s => s.fromId === currentUser.id);
+        const done = myScores.length > 0;
+        const others = users.filter(u => u.role === 'employee' && u.id !== currentUser.id);
+        return `
+          <div class="project-item" style="flex-direction:column;align-items:flex-start;gap:12px;">
+            <div class="project-info" style="width:100%;"><h4>${proj.name}</h4><span>您是项目经理 · ${done?'已评分 '+myScores.length+' 人':'未评分'}</span></div>
+            <div style="width:100%;padding:14px;background:#f8f9fa;border-radius:8px;">
+              <div style="font-weight:600;margin-bottom:10px;font-size:14px;">给团队成员打分</div>
+              ${others.map(emp => {
+                const val = getExistScore(existing, currentUser.id, emp.id);
+                return `<div class="score-row" style="margin-bottom:8px;"><label>${emp.name}</label>
+                  <input type="number" id="emp_sc_${proj.id}_${emp.id}" class="score-input" min="0" max="10" step="0.1"
+                    value="${val}" placeholder="0-10"></div>`;
+              }).join('')}
+              <button class="btn btn-primary btn-sm" onclick="submitEmpScore('${proj.id}')" style="margin-top:6px;width:100%;">${done?'更新评分':'提交评分'}</button>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    async function submitEmpScore(pid) {
+      const proj = getProject(pid);
+      if (!proj) return;
+      let newScores = [];
+      const others = users.filter(u => u.role === 'employee' && u.id !== currentUser.id);
+      others.forEach(emp => {
+        const s = parseFloat(document.getElementById(`emp_sc_${pid}_${emp.id}`).value);
+        if (!isNaN(s)) newScores.push({ fromId: currentUser.id, toId: emp.id, score: s });
+      });
+      if (newScores.length === 0) { showToast('请至少输入一项评分'); return; }
+      try {
+        await apiFetch('/api/scores', { method: 'POST', body: JSON.stringify({ projectId: pid, scores: newScores }) });
+        await loadAllData();
+        showToast('评分提交成功');
+        renderMyProjects();
+      } catch (e) { alert(e.message); }
+    }
+
+    // ==================== 评分记录 ====================
+    function renderRecords() {
+      const isAdmin = currentUser.role === 'admin';
+      document.getElementById('recordsTitle').textContent = isAdmin ? '所有评分记录' : '我的评分记录';
+      const container = document.getElementById('scoreRecords');
+      let showScores = isAdmin ? scores : scores.filter(s => s.fromId === currentUser.id);
+      if (showScores.length === 0) { container.innerHTML = emptyHTML('暂无评分记录'); return; }
+      const byProj = {};
+      showScores.forEach(s => { if (!byProj[s.projectId]) byProj[s.projectId] = []; byProj[s.projectId].push(s); });
+      container.innerHTML = Object.keys(byProj).map(pid => {
+        const proj = getProject(pid);
+        if (!proj) return '';
+        return `<div style="margin-bottom:16px;">
+          <div style="font-weight:600;font-size:15px;margin-bottom:8px;color:var(--primary)">${proj.name}</div>
+          ${byProj[pid].map(s => {
+            const from = getUser(s.fromId);
+            const to = getUser(s.toId);
+            const rating = getRatingLabel(s.score);
+            return `<div class="record-item">
+              <div class="record-info">
+                <span style="font-weight:600;color:${from?from.color:'#333'}">${from?from.name:s.fromId}</span>
+                <span class="record-arrow">→</span>
+                <span style="font-weight:600;color:${to?to.color:'#333'}">${to?to.name:s.toId}</span>
+                <span class="badge ${rating.class}">${rating.text}</span>
+              </div>
+              <div class="record-val" style="color:${s.score>=7?(s.score>=10?'#52c41a':'#faad14'):'#ff4d4f'}">${s.score}</div>
+            </div>`;
+          }).join('')}
+        </div>`;
+      }).join('');
+    }
+
+    // ==================== 账号管理 ====================
+    function renderSettings() {
+      const list = document.getElementById('userList');
+      const employees = users.filter(u => u.role === 'employee');
+      list.innerHTML = employees.map(u => `
+        <div class="user-item">
+          <div class="user-item-info">
+            <div class="avatar" style="background:${u.color};width:36px;height:36px;font-size:13px;">${u.name.charAt(0)}</div>
+            <div><div style="font-weight:600;">${u.name}</div><div style="font-size:12px;color:var(--text-light);">账号: ${u.id}</div></div>
+          </div>
+          <button class="btn btn-sm btn-secondary" onclick="resetPwd('${u.id}')">重置密码</button>
+        </div>
+      `).join('');
+    }
+
+    async function resetPwd(uid) {
+      const pwd = prompt('请输入新密码：');
+      if (!pwd) return;
+      if (pwd.length < 4) { alert('密码至少4位'); return; }
+      try {
+        await apiFetch('/api/users/' + uid + '/reset-password', { method: 'POST', body: JSON.stringify({ newPassword: pwd }) });
+        showToast('密码已重置');
+      } catch (e) { alert(e.message); }
+    }
+
+    // ==================== 数据管理 ====================
+    async function exportData() {
+      try {
+        const data = await apiFetch('/api/export');
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = '项目评分系统备份_' + new Date().toLocaleDateString().replace(/\//g, '-') + '.json';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('数据已导出');
+      } catch (e) { alert(e.message); }
+    }
+
+    async function importData(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!data.users || !data.projects || !data.scores) { alert('文件格式不正确'); input.value = ''; return; }
+          if (!confirm('导入将覆盖服务器上所有数据，确定继续？')) { input.value = ''; return; }
+          await apiFetch('/api/import', { method: 'POST', body: JSON.stringify(data) });
+          input.value = '';
+          showToast('数据导入成功，请刷新页面');
+          setTimeout(() => location.reload(), 1500);
+        } catch (err) { alert('文件解析失败：' + err.message); input.value = ''; }
+      };
+      reader.readAsText(file);
+    }
+
+    function emptyHTML(text) {
+      return `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>${text}</p></div>`;
+    }
+
+    initData();
+  </script>
+</body>
+</html>
