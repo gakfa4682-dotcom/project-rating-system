@@ -33,15 +33,32 @@ function saveDB(data) {
 
 // 初始化默认数据
 let db = loadDB();
-if (db.users.length === 0) {
-  db.users = [
-    { id: 'A', name: '老板', realName: '老板', role: 'admin', password: 'admin123', color: '#e74c3c' },
-    { id: 'B', name: '金洪樑', realName: '金洪樑', role: 'employee', password: '123456', color: '#3498db' },
-    { id: 'C', name: '郭晨浩', realName: '郭晨浩', role: 'employee', password: '123456', color: '#2ecc71' },
-    { id: 'D', name: '胡耀', realName: '胡耀', role: 'employee', password: '123456', color: '#9b59b6' }
-  ];
+if (!db.users) db.users = [];
+if (!db.projects) db.projects = [];
+if (!db.scores) db.scores = [];
+
+const DEFAULT_USERS = [
+  { id: 'A', name: '老板', realName: '老板', role: 'admin', password: 'admin123', color: '#e74c3c' },
+  { id: 'B', name: '金洪樑', realName: '金洪樑', role: 'employee', password: '123456', color: '#3498db' },
+  { id: 'C', name: '郭晨浩', realName: '郭晨浩', role: 'employee', password: '123456', color: '#2ecc71' },
+  { id: 'D', name: '胡耀', realName: '胡耀', role: 'employee', password: '123456', color: '#9b59b6' }
+];
+
+// 确保默认用户存在且密码正确
+let changed = false;
+DEFAULT_USERS.forEach(def => {
+  const existing = db.users.find(u => u.id === def.id);
+  if (!existing) {
+    db.users.push({ ...def });
+    changed = true;
+  } else if (existing.password !== def.password) {
+    existing.password = def.password;
+    changed = true;
+  }
+});
+if (changed) {
   saveDB(db);
-  console.log('默认用户数据已初始化');
+  console.log('默认用户数据已初始化/修复');
 }
 
 // ==================== JWT 认证中间件 ====================
