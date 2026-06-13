@@ -340,6 +340,23 @@
 
       <div id="tab-settings" class="tab-content">
         <div class="card">
+          <div class="card-title">修改我的密码</div>
+          <div class="tip-box">修改后请牢记新密码，员工无法看到或重置您的密码。</div>
+          <div class="form-group" style="margin-top:12px;">
+            <label>旧密码</label>
+            <input type="password" id="myOldPwd" class="form-control" placeholder="请输入当前密码">
+          </div>
+          <div class="form-group">
+            <label>新密码</label>
+            <input type="password" id="myNewPwd" class="form-control" placeholder="至少4位">
+          </div>
+          <div class="form-group">
+            <label>确认新密码</label>
+            <input type="password" id="myNewPwd2" class="form-control" placeholder="再次输入新密码">
+          </div>
+          <button class="btn btn-primary" onclick="changeMyPassword()">确认修改</button>
+        </div>
+        <div class="card">
           <div class="card-title">员工账号密码管理</div>
           <div class="tip-box">您可以在此为员工重置密码，员工自己无法修改密码。</div>
           <div id="userList"></div>
@@ -438,11 +455,8 @@
     }
 
     function onLoginUserChange() {
-      const uid = document.getElementById('loginUser').value;
       const pwdInput = document.getElementById('loginPwd');
-      const u = getUser(uid);
-      if (u && u.role === 'admin') pwdInput.placeholder = '默认密码: admin123';
-      else pwdInput.placeholder = '请输入密码';
+      pwdInput.placeholder = '请输入密码';
     }
 
     async function doLogin() {
@@ -763,6 +777,22 @@
       try {
         await apiFetch('/api/users/' + uid + '/reset-password', { method: 'POST', body: JSON.stringify({ newPassword: pwd }) });
         showToast('密码已重置');
+      } catch (e) { alert(e.message); }
+    }
+
+    async function changeMyPassword() {
+      const oldPwd = document.getElementById('myOldPwd').value;
+      const newPwd = document.getElementById('myNewPwd').value;
+      const newPwd2 = document.getElementById('myNewPwd2').value;
+      if (!oldPwd || !newPwd || !newPwd2) { alert('请填写所有字段'); return; }
+      if (newPwd.length < 4) { alert('新密码至少4位'); return; }
+      if (newPwd !== newPwd2) { alert('两次输入的新密码不一致'); return; }
+      try {
+        await apiFetch('/api/me/password', { method: 'POST', body: JSON.stringify({ oldPassword: oldPwd, newPassword: newPwd }) });
+        document.getElementById('myOldPwd').value = '';
+        document.getElementById('myNewPwd').value = '';
+        document.getElementById('myNewPwd2').value = '';
+        showToast('密码修改成功，请牢记新密码');
       } catch (e) { alert(e.message); }
     }
 

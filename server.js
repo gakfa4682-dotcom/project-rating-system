@@ -111,6 +111,26 @@ app.get('/api/me', authMiddleware, (req, res) => {
   res.json({ user: req.user });
 });
 
+// 修改自己的密码（登录用户）
+app.post('/api/me/password', authMiddleware, (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  if (!oldPassword || !newPassword) {
+    return res.status(400).json({ error: '请提供旧密码和新密码' });
+  }
+  if (newPassword.length < 4) {
+    return res.status(400).json({ error: '新密码至少4位' });
+  }
+  const data = loadDB();
+  const user = data.users.find(u => u.id === req.user.id);
+  if (!user) return res.status(404).json({ error: '用户不存在' });
+  if (user.password !== oldPassword) {
+    return res.status(401).json({ error: '旧密码错误' });
+  }
+  user.password = newPassword;
+  saveDB(data);
+  res.json({ message: '密码修改成功' });
+});
+
 // 获取所有用户（管理员）
 app.get('/api/users', authMiddleware, adminMiddleware, (req, res) => {
   const data = loadDB();
