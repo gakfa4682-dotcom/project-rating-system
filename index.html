@@ -203,6 +203,12 @@
       padding: 10px; border: 1px solid var(--border); border-radius: 8px;
       -webkit-appearance: none;
     }
+    .score-remark { width: 100%; margin-top: 6px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit; resize: vertical; min-height: 56px; box-sizing: border-box; }
+    .score-remark::placeholder { color: #999; }
+    .score-block { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px dashed var(--border); }
+    .score-block:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+    .score-block .score-row { margin-bottom: 6px; }
+    .record-remark { font-size: 12px; color: var(--text-light); margin-top: 6px; padding: 6px 10px; background: #f8f9fa; border-radius: 6px; line-height: 1.5; }
 
     .record-item {
       padding: 14px 16px; background: #f8f9fa; border-radius: 8px;
@@ -859,12 +865,17 @@
       const existing = scores.filter(s => s.projectId === pid);
       let html = `<h4 style="margin-bottom:14px;color:var(--primary)">项目：${proj.name}</h4>`;
       if (isAdmin) {
+        const existScore = getExistScore(existing,'A',pm.id);
+        const existRemark = getExistRemark(existing,'A',pm.id);
         html += `
           <div class="score-section score-section-boss">
             <h5>您（老板）给项目经理 ${pm.name} 打分</h5>
-            <div class="score-row"><label>分数（0-10）</label>
-              <input type="number" id="sc_A_${pm.id}" class="score-input" min="0" max="10" step="0.1"
-                value="${getExistScore(existing,'A',pm.id)}" placeholder="0-10">
+            <div class="score-block">
+              <div class="score-row"><label>分数（0-10）</label>
+                <input type="number" id="sc_A_${pm.id}" class="score-input" min="0" max="10" step="0.1"
+                  value="${existScore}" placeholder="0-10">
+              </div>
+              <textarea id="rm_A_${pm.id}" class="score-remark" placeholder="请填写给 ${pm.name} 打分的理由（必填）">${existRemark}</textarea>
             </div>
           </div>`;
       } else {
@@ -873,9 +884,14 @@
       if (currentUser.id === proj.managerId) {
         html += `<div class="score-section score-section-pm"><h5>您作为项目经理，给其他成员打分</h5>`;
         others.forEach(emp => {
-          html += `<div class="score-row"><label>${emp.name}</label>
-            <input type="number" id="sc_${currentUser.id}_${emp.id}" class="score-input" min="0" max="10" step="0.1"
-              value="${getExistScore(existing,currentUser.id,emp.id)}" placeholder="0-10">
+          const es = getExistScore(existing,currentUser.id,emp.id);
+          const er = getExistRemark(existing,currentUser.id,emp.id);
+          html += `<div class="score-block">
+            <div class="score-row"><label>${emp.name}</label>
+              <input type="number" id="sc_${currentUser.id}_${emp.id}" class="score-input" min="0" max="10" step="0.1"
+                value="${es}" placeholder="0-10">
+            </div>
+            <textarea id="rm_${currentUser.id}_${emp.id}" class="score-remark" placeholder="请填写给 ${emp.name} 打分的理由（必填）">${er}</textarea>
           </div>`;
         });
         html += `</div>`;
@@ -890,6 +906,10 @@
       const s = existing.find(x => x.fromId === fromId && x.toId === toId);
       return s ? s.score : '';
     }
+    function getExistRemark(existing, fromId, toId) {
+      const s = existing.find(x => x.fromId === fromId && x.toId === toId);
+      return s ? (s.remark || '') : '';
+    }
 
     async function submitScores() {
       const pid = document.getElementById('scoreProjectSelect').value;
@@ -900,13 +920,21 @@
       const isAdmin = currentUser.role === 'admin';
       if (isAdmin) {
         const s = parseFloat(document.getElementById(`sc_A_${proj.managerId}`).value);
-        if (!isNaN(s)) newScores.push({ fromId: 'A', toId: proj.managerId, score: s });
+        const r = document.getElementById(`rm_A_${proj.managerId}`).value.trim();
+        if (!isNaN(s)) {
+          if (!r) { alert(`请填写给项目经理 ${getUser(proj.managerId).name} 的打分理由`); return; }
+          newScores.push({ fromId: 'A', toId: proj.managerId, score: s, remark: r });
+        }
       }
       if (currentUser.id === proj.managerId) {
         const employees = users.filter(u => u.role === 'employee');
         employees.filter(e => e.id !== proj.managerId).forEach(emp => {
           const s = parseFloat(document.getElementById(`sc_${currentUser.id}_${emp.id}`).value);
-          if (!isNaN(s)) newScores.push({ fromId: currentUser.id, toId: emp.id, score: s });
+          const r = document.getElementById(`rm_${currentUser.id}_${emp.id}`).value.trim();
+          if (!isNaN(s)) {
+            if (!r) { alert(`请填写给 ${emp.name} 的打分理由`); return; }
+            newScores.push({ fromId: currentUser.id, toId: emp.id, score: s, remark: r });
+          }
         });
       }
       if (newScores.length === 0) { showToast('请至少输入一项评分'); return; }
@@ -935,9 +963,14 @@
               <div style="font-weight:600;margin-bottom:10px;font-size:14px;">给团队成员打分</div>
               ${others.map(emp => {
                 const val = getExistScore(existing, currentUser.id, emp.id);
-                return `<div class="score-row" style="margin-bottom:8px;"><label>${emp.name}</label>
-                  <input type="number" id="emp_sc_${proj.id}_${emp.id}" class="score-input" min="0" max="10" step="0.1"
-                    value="${val}" placeholder="0-10"></div>`;
+                const rem = getExistRemark(existing, currentUser.id, emp.id);
+                return `<div class="score-block" style="margin-bottom:12px;padding-bottom:12px;">
+                  <div class="score-row" style="margin-bottom:6px;"><label>${emp.name}</label>
+                    <input type="number" id="emp_sc_${proj.id}_${emp.id}" class="score-input" min="0" max="10" step="0.1"
+                      value="${val}" placeholder="0-10">
+                  </div>
+                  <textarea id="emp_rm_${proj.id}_${emp.id}" class="score-remark" placeholder="请填写给 ${emp.name} 打分的理由（必填）">${rem}</textarea>
+                </div>`;
               }).join('')}
               <button class="btn btn-primary btn-sm" onclick="submitEmpScore('${proj.id}')" style="margin-top:6px;width:100%;">${done?'更新评分':'提交评分'}</button>
             </div>
@@ -952,7 +985,11 @@
       const others = users.filter(u => u.role === 'employee' && u.id !== currentUser.id);
       others.forEach(emp => {
         const s = parseFloat(document.getElementById(`emp_sc_${pid}_${emp.id}`).value);
-        if (!isNaN(s)) newScores.push({ fromId: currentUser.id, toId: emp.id, score: s });
+        const r = document.getElementById(`emp_rm_${pid}_${emp.id}`).value.trim();
+        if (!isNaN(s)) {
+          if (!r) { alert(`请填写给 ${emp.name} 的打分理由`); return; }
+          newScores.push({ fromId: currentUser.id, toId: emp.id, score: s, remark: r });
+        }
       });
       if (newScores.length === 0) { showToast('请至少输入一项评分'); return; }
       try {
@@ -981,14 +1018,17 @@
             const from = getUser(s.fromId);
             const to = getUser(s.toId);
             const rating = getRatingLabel(s.score);
-            return `<div class="record-item">
-              <div class="record-info">
-                <span style="font-weight:600;color:${from?from.color:'#333'}">${from?from.name:s.fromId}</span>
-                <span class="record-arrow">→</span>
-                <span style="font-weight:600;color:${to?to.color:'#333'}">${to?to.name:s.toId}</span>
-                <span class="badge ${rating.class}">${rating.text}</span>
+            return `<div class="record-item" style="flex-direction:column;align-items:flex-start;">
+              <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+                <div class="record-info">
+                  <span style="font-weight:600;color:${from?from.color:'#333'}">${from?from.name:s.fromId}</span>
+                  <span class="record-arrow">→</span>
+                  <span style="font-weight:600;color:${to?to.color:'#333'}">${to?to.name:s.toId}</span>
+                  <span class="badge ${rating.class}">${rating.text}</span>
+                </div>
+                <div class="record-val" style="color:${s.score>=7?(s.score>=10?'#52c41a':'#faad14'):'#ff4d4f'}">${s.score}</div>
               </div>
-              <div class="record-val" style="color:${s.score>=7?(s.score>=10?'#52c41a':'#faad14'):'#ff4d4f'}">${s.score}</div>
+              ${s.remark ? `<div class="record-remark"><strong>打分理由：</strong>${s.remark}</div>` : ''}
             </div>`;
           }).join('')}
         </div>`;

@@ -230,6 +230,7 @@ app.post('/api/scores', authMiddleware, (req, res) => {
     const id = Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
     data.scores.push({
       id, projectId, fromId: s.fromId, toId: s.toId, score: s.score,
+      remark: s.remark || '',
       createdAt: new Date().toISOString()
     });
   }
