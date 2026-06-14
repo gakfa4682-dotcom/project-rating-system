@@ -167,6 +167,17 @@
     .badge-poor { background: #f8d7da; color: #721c24; }
     .badge-gray { background: #ecf0f1; color: #7f8c8d; }
 
+    .criteria-card { border: 1.5px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 10px; background: var(--card); }
+    .criteria-card:last-child { margin-bottom: 0; }
+    .criteria-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-weight: 600; font-size: 14px; }
+    .criteria-header .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .criteria-header .dot-excellent { background: var(--excellent); }
+    .criteria-header .dot-good { background: var(--good); }
+    .criteria-header .dot-poor { background: var(--poor); }
+    .criteria-list { padding-left: 16px; margin: 0; color: var(--text-light); font-size: 13px; line-height: 1.8; }
+    .criteria-list li { margin-bottom: 2px; }
+    .criteria-section { margin-top: 12px; }
+
     .project-item {
       display: flex;
       justify-content: space-between;
@@ -282,10 +293,39 @@
         </div>
         <div class="card">
           <div class="card-title">评分标准</div>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
             <span class="badge badge-excellent">10分 = 优秀</span>
             <span class="badge badge-good">7-9分 = 良好</span>
             <span class="badge badge-poor">7分以下 = 一般</span>
+          </div>
+          <div class="criteria-section">
+            <div class="criteria-card">
+              <div class="criteria-header"><span class="dot dot-excellent"></span>优秀（10分）</div>
+              <ul class="criteria-list">
+                <li>项目按时或提前高质量完成</li>
+                <li>工作成果超出预期，有创新亮点</li>
+                <li>积极主动解决问题，责任心强</li>
+                <li>团队协作表现突出，乐于助人</li>
+              </ul>
+            </div>
+            <div class="criteria-card">
+              <div class="criteria-header"><span class="dot dot-good"></span>良好（7-9分）</div>
+              <ul class="criteria-list">
+                <li>项目基本按时完成，质量达标</li>
+                <li>工作成果符合要求，无明显失误</li>
+                <li>能够配合团队完成各项任务</li>
+                <li>偶有小的改进空间，整体表现稳定</li>
+              </ul>
+            </div>
+            <div class="criteria-card">
+              <div class="criteria-header"><span class="dot dot-poor"></span>一般（7分以下）</div>
+              <ul class="criteria-list">
+                <li>项目延期或未能按要求完成</li>
+                <li>工作质量不达标，存在明显问题</li>
+                <li>配合度不够，沟通协作有待加强</li>
+                <li>需要上级较多督促和指导</li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
@@ -322,12 +362,72 @@
             <button class="btn btn-primary" onclick="submitScores()" style="margin-top: 12px;">提交评分</button>
           </div>
         </div>
+        <div class="card">
+          <div class="card-title">评分标准参考</div>
+          <div class="criteria-card">
+            <div class="criteria-header"><span class="dot dot-excellent"></span>优秀（10分）</div>
+            <ul class="criteria-list">
+              <li>项目按时或提前高质量完成</li>
+              <li>工作成果超出预期，有创新亮点</li>
+              <li>积极主动解决问题，责任心强</li>
+              <li>团队协作表现突出，乐于助人</li>
+            </ul>
+          </div>
+          <div class="criteria-card">
+            <div class="criteria-header"><span class="dot dot-good"></span>良好（7-9分）</div>
+            <ul class="criteria-list">
+              <li>项目基本按时完成，质量达标</li>
+              <li>工作成果符合要求，无明显失误</li>
+              <li>能够配合团队完成各项任务</li>
+              <li>偶有小的改进空间，整体表现稳定</li>
+            </ul>
+          </div>
+          <div class="criteria-card">
+            <div class="criteria-header"><span class="dot dot-poor"></span>一般（7分以下）</div>
+            <ul class="criteria-list">
+              <li>项目延期或未能按要求完成</li>
+              <li>工作质量不达标，存在明显问题</li>
+              <li>配合度不够，沟通协作有待加强</li>
+              <li>需要上级较多督促和指导</li>
+            </ul>
+          </div>
+        </div>
       </div>
 
       <div id="tab-my-projects" class="tab-content">
         <div class="card">
           <div class="card-title">我担任项目经理的项目</div>
           <div id="myProjectList"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">评分标准参考</div>
+          <div class="criteria-card">
+            <div class="criteria-header"><span class="dot dot-excellent"></span>优秀（10分）</div>
+            <ul class="criteria-list">
+              <li>项目按时或提前高质量完成</li>
+              <li>工作成果超出预期，有创新亮点</li>
+              <li>积极主动解决问题，责任心强</li>
+              <li>团队协作表现突出，乐于助人</li>
+            </ul>
+          </div>
+          <div class="criteria-card">
+            <div class="criteria-header"><span class="dot dot-good"></span>良好（7-9分）</div>
+            <ul class="criteria-list">
+              <li>项目基本按时完成，质量达标</li>
+              <li>工作成果符合要求，无明显失误</li>
+              <li>能够配合团队完成各项任务</li>
+              <li>偶有小的改进空间，整体表现稳定</li>
+            </ul>
+          </div>
+          <div class="criteria-card">
+            <div class="criteria-header"><span class="dot dot-poor"></span>一般（7分以下）</div>
+            <ul class="criteria-list">
+              <li>项目延期或未能按要求完成</li>
+              <li>工作质量不达标，存在明显问题</li>
+              <li>配合度不够，沟通协作有待加强</li>
+              <li>需要上级较多督促和指导</li>
+            </ul>
+          </div>
         </div>
       </div>
 
