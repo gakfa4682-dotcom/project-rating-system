@@ -44,21 +44,18 @@ const DEFAULT_USERS = [
   { id: 'D', name: '胡耀', realName: '胡耀', role: 'employee', password: '123456', color: '#9b59b6' }
 ];
 
-// 确保默认用户存在且密码正确
+// 只在用户不存在时创建默认用户，已存在的用户保留其设置的密码
 let changed = false;
 DEFAULT_USERS.forEach(def => {
   const existing = db.users.find(u => u.id === def.id);
   if (!existing) {
     db.users.push({ ...def });
     changed = true;
-  } else if (existing.password !== def.password) {
-    existing.password = def.password;
-    changed = true;
   }
 });
 if (changed) {
   saveDB(db);
-  console.log('默认用户数据已初始化/修复');
+  console.log('默认用户数据已初始化');
 }
 
 // ==================== JWT 认证中间件 ====================
