@@ -2,7 +2,14 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="description" content="公司内部项目评分系统，支持项目经理评分、数据统计、账号管理">
+  <meta itemprop="name" content="项目评分系统">
+  <meta itemprop="description" content="公司内部项目评分系统">
+  <meta name="theme-color" content="#1677ff">
   <title>项目评分系统</title>
   <style>
     :root {
@@ -29,7 +36,13 @@
       color: var(--text);
       line-height: 1.5;
       font-size: 15px;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: env(safe-area-inset-bottom);
     }
+    input, textarea, select { -webkit-appearance: none; appearance: none; }
+    input[type="number"] { -moz-appearance: textfield; }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     .container { max-width: 720px; margin: 0 auto; padding: 16px; }
 
     .login-wrap {
@@ -49,6 +62,20 @@
     }
     .login-title { text-align: center; font-size: 22px; font-weight: 700; margin-bottom: 8px; }
     .login-subtitle { text-align: center; color: var(--text-light); font-size: 13px; margin-bottom: 28px; }
+
+    .wechat-tip {
+      display: none;
+      background: #e6f7ff;
+      border: 1px solid #91d5ff;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: #096dd9;
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+    .wechat-tip.show { display: block; }
+    .wechat-tip strong { color: #0050b3; }
 
     .form-group { margin-bottom: 18px; }
     .form-group label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; color: var(--text); }
@@ -253,6 +280,9 @@
     <div class="login-card">
       <div class="login-title">项目评分系统</div>
       <div class="login-subtitle">请选择身份并登录</div>
+      <div class="wechat-tip" id="wechatTip">
+        <strong>微信用户提示：</strong>点击右上角「···」→「收藏」或「添加到桌面」，下次使用更方便！
+      </div>
       <div class="form-group">
         <label>身份</label>
         <select id="loginUser" class="form-control" onchange="onLoginUserChange()">
@@ -647,7 +677,16 @@
       return data;
     }
 
+    function checkWechat() {
+      const ua = navigator.userAgent.toLowerCase();
+      if (ua.includes('micromessenger')) {
+        const tip = document.getElementById('wechatTip');
+        if (tip) tip.classList.add('show');
+      }
+    }
+
     async function initData() {
+      checkWechat();
       try {
         const u = await apiFetch('/api/users');
         users = u.users || [];
